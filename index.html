@@ -228,6 +228,86 @@
             padding: 16px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center;
         }
         .plan-price { font-weight: bold; color: #3b82f6; }
+
+        /* --- BOTÃO FLUTUANTE: DÚVIDAS FREQUENTES --- */
+        .faq-fab {
+            position: fixed;
+            bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px));
+            right: 20px;
+            z-index: 150;
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: none;
+            border-radius: 50px;
+            padding: 14px 18px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 25px -8px rgba(59, 130, 246, 0.6);
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+        .faq-fab:hover { background-color: #2563eb; transform: translateY(-2px); }
+        .faq-fab .faq-fab-icon { font-size: 1.1rem; }
+
+        /* --- MODAL: DÚVIDAS FREQUENTES --- */
+        .faq-modal-content {
+            max-width: 600px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+        .faq-modal-content h2 { text-align: center; }
+        .faq-modal-content > p { text-align: center; }
+        .faq-list {
+            margin-top: 16px;
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 4px;
+        }
+        .faq-item {
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 4px;
+        }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-item summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+        .faq-item summary::-webkit-details-marker { display: none; }
+        .faq-item summary::after {
+            content: '+';
+            flex-shrink: 0;
+            font-size: 1.2rem;
+            line-height: 1;
+            color: var(--text-sub);
+        }
+        .faq-item[open] summary::after { content: '−'; }
+        .faq-item p.faq-answer {
+            margin-top: 8px;
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .faq-contact {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .faq-contact p { color: var(--text-sub); font-size: 0.85rem; margin-bottom: 4px; }
+        .faq-contact strong { color: #3b82f6; word-break: break-all; }
     </style>
 </head>
 <body>
@@ -347,6 +427,229 @@
         </div>
     </div>
 
+    <!-- BOTÃO FLUTUANTE: DÚVIDAS FREQUENTES -->
+    <button class="faq-fab" id="btn-faq" title="Dúvidas Frequentes">
+        <span class="faq-fab-icon">❓</span>
+        <span>Dúvidas frequentes</span>
+    </button>
+
+    <!-- MODAL: DÚVIDAS FREQUENTES -->
+    <div class="modal" id="modal-faq">
+        <div class="modal-content faq-modal-content">
+            <span class="close-modal" id="close-faq-btn">&times;</span>
+            <h2>Dúvidas Frequentes</h2>
+            <p style="color: var(--text-sub); margin-top: 8px;">Tudo o que você precisa saber sobre o ChromaVision e sobre daltonismo.</p>
+
+            <div class="faq-list">
+                <details class="faq-item">
+                    <summary>1. O que é o ChromaVision?</summary>
+                    <p class="faq-answer">É um aplicativo desenvolvido para promover acessibilidade visual para pessoas com daltonismo.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>2. O ChromaVision é gratuito?</summary>
+                    <p class="faq-answer">Sim, existe uma versão gratuita com funcionalidades essenciais.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>3. O aplicativo funciona em Android?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>4. O aplicativo funciona em iPhone?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>5. O ChromaVision precisa de internet?</summary>
+                    <p class="faq-answer">As funções básicas podem funcionar sem internet.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>6. O aplicativo realiza diagnóstico de daltonismo?</summary>
+                    <p class="faq-answer">Não. O aplicativo não substitui avaliação médica.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>7. O que é daltonismo?</summary>
+                    <p class="faq-answer">É uma alteração na percepção das cores.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>8. O daltonismo tem cura?</summary>
+                    <p class="faq-answer">Na maioria dos casos, não.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>9. O daltonismo é hereditário?</summary>
+                    <p class="faq-answer">Sim, geralmente possui origem genética.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>10. Apenas homens podem ser daltônicos?</summary>
+                    <p class="faq-answer">Não, mas a condição é mais comum em homens.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>11. Quais tipos de daltonismo existem?</summary>
+                    <p class="faq-answer">Protanopia, Deuteranopia, Tritanopia e outras variações.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>12. O que é Protanopia?</summary>
+                    <p class="faq-answer">É a dificuldade em perceber tons vermelhos.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>13. O que é Deuteranopia?</summary>
+                    <p class="faq-answer">É a dificuldade em perceber tons verdes.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>14. O que é Tritanopia?</summary>
+                    <p class="faq-answer">É a dificuldade em perceber tons azuis.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>15. Como funciona a simulação de cores?</summary>
+                    <p class="faq-answer">O aplicativo aplica filtros que reproduzem diferentes percepções visuais.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>16. Posso carregar imagens da galeria?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>17. Posso tirar fotos diretamente pelo aplicativo?</summary>
+                    <p class="faq-answer">Sim, quando a função de câmera estiver habilitada.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>18. Minha foto original é alterada?</summary>
+                    <p class="faq-answer">Não.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>19. O aplicativo salva minhas imagens?</summary>
+                    <p class="faq-answer">Somente quando autorizado pelo usuário.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>20. Posso compartilhar imagens analisadas?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>21. O ChromaVision identifica cores?</summary>
+                    <p class="faq-answer">Sim, em versões que possuem essa funcionalidade.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>22. O aplicativo ajuda designers?</summary>
+                    <p class="faq-answer">Sim, permitindo avaliar a acessibilidade de projetos visuais.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>23. O aplicativo ajuda professores?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>24. O aplicativo ajuda empresas?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>25. Posso usar o ChromaVision para estudos?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>26. O aplicativo possui modo escuro?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>27. O aplicativo possui recursos de acessibilidade?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>28. O que é acessibilidade visual?</summary>
+                    <p class="faq-answer">É a adaptação de conteúdos para facilitar a compreensão por diferentes usuários.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>29. Quantas pessoas possuem daltonismo?</summary>
+                    <p class="faq-answer">Milhões de pessoas em todo o mundo convivem com a condição.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>30. O aplicativo corrige o daltonismo?</summary>
+                    <p class="faq-answer">Não, mas pode ajudar na interpretação de informações visuais.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>31. Posso usar o aplicativo no trabalho?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>32. Posso usar o aplicativo na escola?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>33. O aplicativo funciona em tablets?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>34. O aplicativo consome muita bateria?</summary>
+                    <p class="faq-answer">O consumo é semelhante ao de aplicativos de imagem.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>35. O aplicativo coleta dados pessoais?</summary>
+                    <p class="faq-answer">Somente os necessários para o funcionamento da plataforma.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>36. Como posso criar uma conta?</summary>
+                    <p class="faq-answer">Através da tela de cadastro.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>37. Posso recuperar minha senha?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>38. Posso alterar meu perfil?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>39. O aplicativo possui assinatura premium?</summary>
+                    <p class="faq-answer">Pode oferecer recursos avançados através de planos premium.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>40. Quais vantagens da versão premium?</summary>
+                    <p class="faq-answer">Mais filtros, recursos avançados e armazenamento ampliado.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>41. O aplicativo recebe atualizações?</summary>
+                    <p class="faq-answer">Sim, periodicamente.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>42. Como enviar sugestões?</summary>
+                    <p class="faq-answer">Pela área de contato ou feedback.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>43. Como reportar um erro?</summary>
+                    <p class="faq-answer">Pelo suporte do aplicativo.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>44. O ChromaVision é indicado para crianças?</summary>
+                    <p class="faq-answer">Sim, com acompanhamento de responsáveis quando necessário.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>45. O aplicativo pode ser usado por pessoas sem daltonismo?</summary>
+                    <p class="faq-answer">Sim.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>46. Como tornar um design mais acessível?</summary>
+                    <p class="faq-answer">Evite depender exclusivamente de cores para transmitir informações.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>47. Por que vermelho e verde costumam causar confusão?</summary>
+                    <p class="faq-answer">Porque são as cores mais afetadas nos tipos mais comuns de daltonismo.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>48. O aplicativo ajuda na conscientização sobre daltonismo?</summary>
+                    <p class="faq-answer">Sim, esse é um dos seus principais objetivos.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>49. O ChromaVision substitui consultas médicas?</summary>
+                    <p class="faq-answer">Não.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>50. Qual é a missão do ChromaVision?</summary>
+                    <p class="faq-answer">Promover inclusão, acessibilidade visual e conscientização sobre o daltonismo através da tecnologia.</p>
+                </details>
+            </div>
+
+            <div class="faq-contact">
+                <p>Ainda com dúvidas? Entre em contato:</p>
+                <strong>ChromaVision.project@gmail.com</strong>
+            </div>
+        </div>
+    </div>
+
     <!-- MOTOR LOGIC DE COMPORTAMENTO (JAVASCRIPT) -->
     <script>
         // --- GERENCIAMENTO DE TELAS E LOGIN ---
@@ -422,6 +725,18 @@
         });
         window.addEventListener('click', (e) => {
             if (e.target === modal) modal.style.display = 'none';
+        });
+
+        // --- MODAL: DÚVIDAS FREQUENTES ---
+        const modalFaq = document.getElementById('modal-faq');
+        document.getElementById('btn-faq').addEventListener('click', () => {
+            modalFaq.style.display = 'flex';
+        });
+        document.getElementById('close-faq-btn').addEventListener('click', () => {
+            modalFaq.style.display = 'none';
+        });
+        window.addEventListener('click', (e) => {
+            if (e.target === modalFaq) modalFaq.style.display = 'none';
         });
 
         // --- UPLOAD DE IMAGEM E PREVIEW ---
