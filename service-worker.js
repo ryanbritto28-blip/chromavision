@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chromavision-v1';
+const CACHE_NAME = 'chromavision-v2';
 const ASSETS = [
   './',
   './index.html',
