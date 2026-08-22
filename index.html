@@ -1147,7 +1147,7 @@
         async function buscarLegendaIA(cores) {
             const legenda = document.getElementById('ai-legenda-texto');
             const listaCores = cores.map(c => `${c.nome} (${c.pct}%)`).join(', ');
-            const pergunta = `Analise brevemente esta imagem com base nas cores identificadas: ${listaCores}. Diga qual é a cor predominante, o que isso pode indicar visualmente, e como essas cores podem ser percebidas por pessoas com daltonismo (protanopia, deuteranopia ou tritanopia). Seja objetivo e use no máximo 3 frases curtas.`;
+            const pergunta = `Uma imagem foi carregada com as seguintes cores identificadas: ${listaCores}. Por favor: 1) Explique como uma pessoa com visão normal (sem daltonismo) enxerga a cor predominante — o que ela representa visualmente, que sensações transmite e como aparece na vida real. 2) Explique brevemente como essa cor pode ser percebida de forma diferente por pessoas com protanopia, deuteranopia ou tritanopia. Use no máximo 3 frases curtas e objetivas no total.`;
 
             try {
                 const resp = await fetch(`${CHAT_SERVIDOR}/chat`, {
@@ -1159,9 +1159,25 @@
                 const dados = await resp.json();
                 legenda.textContent = dados.resposta || 'Não foi possível obter análise da IA.';
             } catch {
-                // Fallback sem IA
+                // Fallback sem IA — descrição básica da visão normal
                 const principal = cores[0];
-                legenda.textContent = `A cor predominante nesta imagem é ${principal.nome} (${principal.pct}%). ${cores.length > 1 ? `Também há presença de ${cores.slice(1,3).map(c=>c.nome).join(' e ')}.` : ''} Para análise detalhada com IA, verifique sua conexão.`;
+                const descricoes = {
+                    "Vermelho": "cor quente e intensa, associada a energia e alerta",
+                    "Laranja": "cor vibrante, associada a criatividade e entusiasmo",
+                    "Amarelo": "cor luminosa e alegre, associada a atenção e otimismo",
+                    "Verde": "cor natural, associada a natureza, saúde e equilíbrio",
+                    "Azul": "cor fria e tranquila, associada a confiança e serenidade",
+                    "Roxo": "cor nobre, associada a criatividade e mistério",
+                    "Rosa": "cor suave, associada a delicadeza e afeto",
+                    "Marrom": "cor terrosa, associada a estabilidade e naturalidade",
+                    "Preto": "ausência de luz, associado a elegância e sofisticação",
+                    "Branco": "presença de toda luz, associado a pureza e clareza",
+                    "Cinza": "tom neutro, associado a equilíbrio e discrição",
+                    "Ciano": "tom fresco e moderno, associado a clareza e leveza",
+                    "Bege": "tom suave e neutro, associado a calma e sofisticação"
+                };
+                const desc = descricoes[principal.nome] || "cor de presença marcante na imagem";
+                legenda.textContent = `A cor predominante é ${principal.nome} (${principal.pct}%), uma ${desc}. Para análise completa com IA, verifique sua conexão com o servidor.`;
             }
         }
 
