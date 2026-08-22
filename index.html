@@ -224,6 +224,100 @@
         .deuteranopia { filter: url(#deuteranopia-filter); }
         .tritanopia { filter: url(#tritanopia-filter); }
 
+        /* --- PAINEL DE ANÁLISE DE CORES --- */
+        .color-analysis-panel {
+            display: none;
+            margin-top: 16px;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px;
+            animation: fadeIn 0.4s ease;
+        }
+        .color-analysis-panel.visible { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .color-analysis-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .color-swatches {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .color-swatch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 7px 12px;
+        }
+
+        .swatch-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .swatch-info { line-height: 1.3; }
+        .swatch-name { font-size: 0.82rem; font-weight: 600; color: var(--text-main); }
+        .swatch-pct  { font-size: 0.72rem; color: var(--text-sub); }
+
+        .ai-legenda {
+            background-color: var(--bg-card);
+            border-left: 3px solid #7c3aed;
+            border-radius: 0 10px 10px 0;
+            padding: 12px 14px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .ai-legenda-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #7c3aed;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .ai-legenda-loading {
+            color: var(--text-sub);
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .spinner {
+            width: 14px; height: 14px;
+            border: 2px solid var(--border-color);
+            border-top-color: #7c3aed;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
         /* --- JANELA MODAL (ASSINATURAS) --- */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -449,13 +543,6 @@
         }
         .chat-send:hover { background-color: #6d28d9; }
         .chat-send:disabled { background-color: var(--bg-input); cursor: not-allowed; }
-        .chat-offline-notice {
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--text-sub);
-            padding: 4px 12px 8px;
-            background-color: var(--bg-card);
-        }
     </style>
 </head>
 <body>
@@ -549,6 +636,21 @@
                 <div class="processing-overlay" id="processing-overlay">Processando correção de cores...</div>
             </div>
             <canvas id="processing-canvas" style="display: none;"></canvas>
+
+            <!-- PAINEL DE ANÁLISE DE CORES -->
+            <div class="color-analysis-panel" id="color-analysis-panel">
+                <div class="color-analysis-title">🎨 Análise de Cores da Imagem</div>
+                <div class="color-swatches" id="color-swatches"></div>
+                <div class="ai-legenda">
+                    <div class="ai-legenda-label">🤖 ChromaBot diz:</div>
+                    <div id="ai-legenda-texto">
+                        <div class="ai-legenda-loading">
+                            <div class="spinner"></div>
+                            <span>Analisando a imagem...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -603,7 +705,6 @@
             <input type="text" id="chat-input" placeholder="Digite sua pergunta..." maxlength="500" onkeydown="if(event.key==='Enter') chatEnviar()">
             <button class="chat-send" id="chat-send-btn" onclick="chatEnviar()">➤</button>
         </div>
-        <div class="chat-offline-notice" id="chat-notice">Conectando ao servidor de IA...</div>
     </div>
 
     <!-- BOTÃO FLUTUANTE: DÚVIDAS FREQUENTES -->
@@ -887,6 +988,9 @@
             img.style.display = 'none';
             placeholder.style.display = 'block';
             originalImageSrc = null;
+
+            // Oculta painel de análise de cores
+            document.getElementById('color-analysis-panel').classList.remove('visible');
         });
 
         // --- MUDANÇA DE TEMA (DARK/LIGHT) ---
@@ -937,9 +1041,127 @@
                 // Limpa qualquer filtro/estado anterior ao carregar uma nova imagem
                 img.classList.remove('protanopia', 'deuteranopia', 'tritanopia');
                 document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
+
+                // Dispara análise de cores após a imagem carregar
+                img.onload = () => analisarCores(img);
             }
             if(event.target.files[0]) {
                 reader.readAsDataURL(event.target.files[0]);
+            }
+        }
+
+        // --- ANÁLISE DE CORES DA IMAGEM ---
+
+        // Mapa de nomes de cores em português
+        const NOMES_CORES = [
+            { nome: "Vermelho",   r: [180,255], g: [0,80],   b: [0,80]   },
+            { nome: "Laranja",    r: [200,255], g: [80,160],  b: [0,60]   },
+            { nome: "Amarelo",    r: [200,255], g: [180,255], b: [0,80]   },
+            { nome: "Verde",      r: [0,120],   g: [130,255], b: [0,120]  },
+            { nome: "Azul",       r: [0,100],   g: [0,120],   b: [130,255]},
+            { nome: "Roxo",       r: [80,180],  g: [0,80],    b: [130,255]},
+            { nome: "Rosa",       r: [200,255], g: [80,160],  b: [130,220]},
+            { nome: "Marrom",     r: [100,180], g: [50,120],  b: [0,70]   },
+            { nome: "Preto",      r: [0,60],    g: [0,60],    b: [0,60]   },
+            { nome: "Branco",     r: [200,255], g: [200,255], b: [200,255]},
+            { nome: "Cinza",      r: [60,180],  g: [60,180],  b: [60,180] },
+            { nome: "Ciano",      r: [0,80],    g: [180,255], b: [180,255]},
+            { nome: "Bege",       r: [200,255], g: [180,230], b: [140,200]},
+        ];
+
+        function classificarCor(r, g, b) {
+            for (const cor of NOMES_CORES) {
+                if (r >= cor.r[0] && r <= cor.r[1] &&
+                    g >= cor.g[0] && g <= cor.g[1] &&
+                    b >= cor.b[0] && b <= cor.b[1]) {
+                    return cor.nome;
+                }
+            }
+            return "Outra";
+        }
+
+        function rgbParaHex(r, g, b) {
+            return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+        }
+
+        function analisarCores(imgElement) {
+            const canvas = document.createElement('canvas');
+            const MAX = 120; // resolução reduzida para agilizar
+            const escala = Math.min(MAX / imgElement.naturalWidth, MAX / imgElement.naturalHeight, 1);
+            canvas.width  = Math.round(imgElement.naturalWidth  * escala);
+            canvas.height = Math.round(imgElement.naturalHeight * escala);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(imgElement, 0, 0, canvas.width, canvas.height);
+
+            const dados = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            const contagem = {};
+            const exemplos = {};
+
+            // Amostra 1 em cada 4 pixels para agilizar
+            for (let i = 0; i < dados.length; i += 16) {
+                const r = dados[i], g = dados[i+1], b = dados[i+2], a = dados[i+3];
+                if (a < 128) continue; // ignora pixels transparentes
+                const nome = classificarCor(r, g, b);
+                contagem[nome] = (contagem[nome] || 0) + 1;
+                if (!exemplos[nome]) exemplos[nome] = { r, g, b };
+            }
+
+            // Ordena por frequência, pega top 5
+            const total = Object.values(contagem).reduce((a, b) => a + b, 0);
+            const top = Object.entries(contagem)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([nome, qtd]) => ({
+                    nome,
+                    pct: Math.round((qtd / total) * 100),
+                    hex: rgbParaHex(exemplos[nome].r, exemplos[nome].g, exemplos[nome].b)
+                }));
+
+            exibirSwatches(top);
+            buscarLegendaIA(top);
+        }
+
+        function exibirSwatches(cores) {
+            const painel   = document.getElementById('color-analysis-panel');
+            const swatches = document.getElementById('color-swatches');
+            const legenda  = document.getElementById('ai-legenda-texto');
+
+            swatches.innerHTML = '';
+            cores.forEach(cor => {
+                const div = document.createElement('div');
+                div.className = 'color-swatch';
+                div.innerHTML = `
+                    <div class="swatch-dot" style="background-color:${cor.hex}"></div>
+                    <div class="swatch-info">
+                        <div class="swatch-name">${cor.nome}</div>
+                        <div class="swatch-pct">${cor.pct}%</div>
+                    </div>`;
+                swatches.appendChild(div);
+            });
+
+            // Mostra spinner enquanto IA responde
+            legenda.innerHTML = `<div class="ai-legenda-loading"><div class="spinner"></div><span>ChromaBot analisando...</span></div>`;
+            painel.classList.add('visible');
+        }
+
+        async function buscarLegendaIA(cores) {
+            const legenda = document.getElementById('ai-legenda-texto');
+            const listaCores = cores.map(c => `${c.nome} (${c.pct}%)`).join(', ');
+            const pergunta = `Analise brevemente esta imagem com base nas cores identificadas: ${listaCores}. Diga qual é a cor predominante, o que isso pode indicar visualmente, e como essas cores podem ser percebidas por pessoas com daltonismo (protanopia, deuteranopia ou tritanopia). Seja objetivo e use no máximo 3 frases curtas.`;
+
+            try {
+                const resp = await fetch(`${CHAT_SERVIDOR}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pergunta }),
+                    signal: AbortSignal.timeout(30000)
+                });
+                const dados = await resp.json();
+                legenda.textContent = dados.resposta || 'Não foi possível obter análise da IA.';
+            } catch {
+                // Fallback sem IA
+                const principal = cores[0];
+                legenda.textContent = `A cor predominante nesta imagem é ${principal.nome} (${principal.pct}%). ${cores.length > 1 ? `Também há presença de ${cores.slice(1,3).map(c=>c.nome).join(' e ')}.` : ''} Para análise detalhada com IA, verifique sua conexão.`;
             }
         }
 
@@ -1079,14 +1301,12 @@
         const chatMsgs    = document.getElementById("chat-msgs");
         const chatInput   = document.getElementById("chat-input");
         const chatSendBtn = document.getElementById("chat-send-btn");
-        const chatNotice  = document.getElementById("chat-notice");
 
         document.getElementById("btn-chat").addEventListener("click", (e) => {
             e.stopPropagation();
             chatWindow.classList.toggle("open");
             if (chatWindow.classList.contains("open")) {
                 chatInput.focus();
-                chatVerificarStatus();
             }
         });
 
@@ -1096,18 +1316,6 @@
 
         // Evita fechar a janela ao clicar dentro dela
         chatWindow.addEventListener("click", (e) => e.stopPropagation());
-
-        async function chatVerificarStatus() {
-            try {
-                const resp = await fetch(`${CHAT_SERVIDOR}/status`, { signal: AbortSignal.timeout(4000) });
-                const dados = await resp.json();
-                chatNotice.textContent = dados.ollama === "online"
-                    ? `✅ IA online · ${dados.modelo}`
-                    : "⚠️ IA carregando, aguarde...";
-            } catch {
-                chatNotice.textContent = "⚠️ Servidor offline — inicie o iniciar.bat";
-            }
-        }
 
         function chatAdicionarMsg(texto, tipo) {
             const div = document.createElement("div");
